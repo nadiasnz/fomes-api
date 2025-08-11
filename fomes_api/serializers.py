@@ -1,5 +1,6 @@
 from rest_framework import serializers
 from django.contrib.auth.models import User
+from .models import Home, Review
 
 class RegisterSerializer(serializers.ModelSerializer):
     password = serializers.CharField(write_only=True)
@@ -28,3 +29,36 @@ class ChangePasswordSerializer(serializers.Serializer):
         user.set_password(new_password)
         user.save()
         return user    
+
+class HomeSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Home
+        fields = '__all__'
+        read_only_fields = ['customer', 'created_at', 'updated_at']
+
+class ReviewSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Review
+        fields = '__all__'
+        read_only_fields = ['user', 'created_at', 'updated_at', 'home']
+        
+
+class HomeBasicSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Home
+        fields = [
+            'id', 'address', 'number', 'zip_code', 'city', 'town',
+            'country'
+        ]
+
+class ReviewWithHomeSerializer(serializers.ModelSerializer):
+    home = HomeBasicSerializer()
+
+    class Meta:
+        model = Review
+        fields = [
+            'id', 'rating', 'description', 'noise_level',
+            'disturbance_level', 'created_at', 'home'
+        ]
+
+
