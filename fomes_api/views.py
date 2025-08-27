@@ -1,12 +1,16 @@
 from rest_framework.views import APIView
 from rest_framework.response import Response
-from rest_framework import status
-from .serializers import (
-    RegisterSerializer, ChangePasswordSerializer, HomeSerializer, ReviewSerializer, ReviewWithHomeSerializer
-)
+from rest_framework import status, viewsets
+from rest_framework.generics import ListAPIView
 from rest_framework.permissions import IsAuthenticated
 from django.db import transaction
+from .serializers import (
+    RegisterSerializer, ChangePasswordSerializer, HomeSerializer, ReviewSerializer, ReviewWithHomeSerializer,
+    HomeWithReviewStatsSerializer
+)
 from .models import Home, Review
+from django.db.models import Avg, Count, Q
+
 
 class RegisterView(APIView):
     def post(self, request):
@@ -81,20 +85,45 @@ class CreateHomeAndReviewView(APIView):
             'home_created': created,
             'review': ReviewSerializer(review).data
         }, status=status.HTTP_201_CREATED)
-
-
-class HomesWithUserReviewsView(APIView):
+    
+    
+class ReviewViewSet(viewsets.ModelViewSet):
+    queryset = Review.objects.all().order_by("-created_at")
+    serializer_class = ReviewSerializer
     permission_classes = [IsAuthenticated]
 
-    def get(self, request):
-        user = request.user
-        reviews = (
-            Review.objects
-            .filter(user=user)
-            .select_related('home')  
+
+class HomesWithUserReviewsView(ListAPIView):
+    serializer_class = ReviewWithHomeSerializer
+    permission_classes = [IsAuthenticated]
+
+    def get_queryset(self):
+        return Review.objects.filter(user=self.request.user).select_related('home') 
+    
+
+class HomesView(ListAPIView):
+    serializer_class = HomeWithReviewStatsSerializer
+    
+    def get_queryset(self):
+        params = self.request.query_params
+        homes = Home.objects.annotate(
+            avg_rating=Avg('reviews__rating')
+        ).annotate(
+            avg_noise_level=Avg('reviews__noise_level')
+        ).annotate(
+            avg_disturbance_level=Avg('reviews__disturbance_level')
+        ).annotate(
+            reviews_count=Count('reviews')
         )
 
-        serializer = ReviewWithHomeSerializer(reviews, many=True)
-        return Response(serializer.data)
+        search_value = params.get('search')
+
+        if search_value:
+            homes = homes.filter(Q(city__iexact=search_value) | Q(town__iexact=search_value)) 
+
+        return homes
+
+
+
     
     

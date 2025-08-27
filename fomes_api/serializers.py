@@ -62,3 +62,16 @@ class ReviewWithHomeSerializer(serializers.ModelSerializer):
         ]
 
 
+class HomeWithReviewStatsSerializer(serializers.ModelSerializer):
+    reviews_count = serializers.IntegerField(read_only=True)
+    avg_rating = serializers.FloatField(read_only=True)
+    avg_noise_level = serializers.FloatField(read_only=True)
+    avg_disturbance_level = serializers.FloatField(read_only=True)
+    
+
+    class Meta:
+        model = Home
+        fields = [
+            'id', 'address', 'number', 'floor', 'zip_code', 'city',
+            'town', 'country', 'reviews_count', 'avg_rating', 'avg_noise_level', 'avg_disturbance_level'
+        ]
