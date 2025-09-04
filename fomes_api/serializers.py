@@ -1,16 +1,15 @@
 from rest_framework import serializers
-from django.contrib.auth.models import User
-from .models import Home, Review
+from .models import Home, Review, FomesUser
 
 class RegisterSerializer(serializers.ModelSerializer):
     password = serializers.CharField(write_only=True)
 
     class Meta:
-        model = User
+        model = FomesUser
         fields = ['username', 'email', 'password']
 
     def create(self, validated_data):
-        return User.objects.create_user(**validated_data)
+        return FomesUser.objects.create_user(**validated_data)
 
 
 class ChangePasswordSerializer(serializers.Serializer):
@@ -75,3 +74,8 @@ class HomeWithReviewStatsSerializer(serializers.ModelSerializer):
             'id', 'address', 'number', 'floor', 'zip_code', 'city',
             'town', 'country', 'reviews_count', 'avg_rating', 'avg_noise_level', 'avg_disturbance_level'
         ]
+
+class ProfilePhotoSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = FomesUser
+        fields = ["photo"]
