@@ -46,7 +46,7 @@ class HomeBasicSerializer(serializers.ModelSerializer):
     class Meta:
         model = Home
         fields = [
-            'id', 'address', 'number', 'zip_code', 'city', 'town',
+            'id', 'address', 'number', 'floor', 'zip_code', 'city', 'town',
             'country'
         ]
 
