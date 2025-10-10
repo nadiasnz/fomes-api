@@ -6,6 +6,7 @@ from .views import (
 from rest_framework.routers import DefaultRouter
 
 router = DefaultRouter()
+# Register the CRUD endpoint for reviews
 router.register(r"reviews", ReviewViewSet, basename="review")
 
 urlpatterns = router.urls

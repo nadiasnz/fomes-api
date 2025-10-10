@@ -2,6 +2,7 @@ from rest_framework import serializers
 from .models import Home, Review, FomesUser
 
 class RegisterSerializer(serializers.ModelSerializer):
+    # Serializer to create a user. It determines the fields required
     password = serializers.CharField(write_only=True)
 
     class Meta:
@@ -18,11 +19,13 @@ class ChangePasswordSerializer(serializers.Serializer):
 
     def validate_current_password(self, value):
         user = self.context['request'].user
+        # Check that the logged in user has the password provided 
         if not user.check_password(value):
             raise serializers.ValidationError("Current password is wrong.")
         return value
 
     def save(self, **kwargs):
+        # Update the password on database
         user = self.context['request'].user
         new_password = self.validated_data['new_password']
         user.set_password(new_password)
@@ -51,6 +54,7 @@ class HomeBasicSerializer(serializers.ModelSerializer):
         ]
 
 class ReviewWithHomeSerializer(serializers.ModelSerializer):
+    # Home data is serialized as a nested JSON
     home = HomeBasicSerializer()
 
     class Meta:
@@ -62,11 +66,12 @@ class ReviewWithHomeSerializer(serializers.ModelSerializer):
 
 
 class HomeWithReviewStatsSerializer(serializers.ModelSerializer):
+    # The four fields below need to be annotated by the database query
     reviews_count = serializers.IntegerField(read_only=True)
     avg_rating = serializers.FloatField(read_only=True)
     avg_noise_level = serializers.FloatField(read_only=True)
     avg_disturbance_level = serializers.FloatField(read_only=True)
-    
+
 
     class Meta:
         model = Home

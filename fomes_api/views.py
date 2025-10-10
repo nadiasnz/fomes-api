@@ -13,6 +13,7 @@ from django.db.models import Avg, Count, Q
 
 class RegisterView(APIView):
     def post(self, request):
+        # Endpoint to create an user 
         serializer = RegisterSerializer(data=request.data)
         if serializer.is_valid():
             serializer.save()
@@ -24,6 +25,7 @@ class ChangePasswordView(APIView):
     permission_classes = [IsAuthenticated]
 
     def post(self, request):
+        # Endpoint to change the password of a user. User has to be logged in
         serializer = ChangePasswordSerializer(data=request.data, context={'request': request})
         serializer.is_valid(raise_exception=True)
         serializer.save()
@@ -33,12 +35,14 @@ class CreateHomeAndReviewView(APIView):
     permission_classes = [IsAuthenticated]
 
     def post(self, request):
+        # Create review and the home which the review is about, in case the home doesn't exist yet.
+        # Duplicate homes are prevented
         user = request.user
         home_data = request.data.get('home')
         review_data = request.data.get('review')
+        # At user ID to the data that will be stored on database
         home_data['user'] = user.pk
         review_data['user'] = user.pk
-
 
         if not home_data or not review_data:
             return Response({'error': 'Se requieren datos de home y review.'},
@@ -53,7 +57,10 @@ class CreateHomeAndReviewView(APIView):
         validated_review = review_serializer.validated_data
 
         with transaction.atomic():
+            # Create home and review together, or create nothing in case of error
+
             home_lookup = {
+                # These are the fields that should be unique for a home
                 'address': validated_home['address'],
                 'number': validated_home['number'],
                 'floor': validated_home['floor'],
@@ -62,6 +69,7 @@ class CreateHomeAndReviewView(APIView):
 
             home, created = Home.objects.get_or_create(
                 defaults={
+                    # Fields used for creating a home when it doesn't exist by the unique fields
                     'zip_code': validated_home['zip_code'],
                     'town': validated_home['town'],
                     'user': user, 
@@ -87,20 +95,24 @@ class CreateHomeAndReviewView(APIView):
     
     
 class ReviewViewSet(viewsets.ModelViewSet):
+    # CRUD endpoint for reviews
     queryset = Review.objects.all().order_by("-created_at")
     serializer_class = ReviewSerializer
     permission_classes = [IsAuthenticated]
 
 
 class HomesWithUserReviewsView(ListAPIView):
+    # Read endpoint to get the reviews of the logged in user, including the related home
     serializer_class = ReviewWithHomeSerializer
     permission_classes = [IsAuthenticated]
 
     def get_queryset(self):
+        # Home is joined because it is serialized for each review
         return Review.objects.filter(user=self.request.user).select_related('home') 
     
 
 class HomesView(ListAPIView):
+    # Read endpoint to search homes by city or town and get review stats for each home
     serializer_class = HomeWithReviewStatsSerializer
     
     def get_queryset(self):
@@ -119,11 +131,13 @@ class HomesView(ListAPIView):
         search_value = params.get('search')
 
         if search_value:
+            # Search value is a query param provided by the frontend
             homes = homes.filter(Q(city__iexact=search_value) | Q(town__iexact=search_value)) 
 
         return homes
 
 class ProfilePhotoView(RetrieveUpdateAPIView):
+    # Endpoint to get or update (PATCH) the profile photo of the logged in user
     serializer_class = ProfilePhotoSerializer
     permission_classes = [IsAuthenticated]
 
