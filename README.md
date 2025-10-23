@@ -33,4 +33,4 @@ Once the server is running, you can navigate to [http://localhost:8000/api/swagg
 
 ## Author and License
 
-This project was created by [Nadia Sáenz](https://github.com/nadiasnz) and is licensed by the Apache license.
+This project was created by [Nadia Sáenz](https://github.com/nadiasnz) and is licensed by the Apache license. Link to [Github repository](https://github.com/nadiasnz/fomes-api).
