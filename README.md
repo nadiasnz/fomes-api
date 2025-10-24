@@ -25,6 +25,11 @@ Then, run the development server:
 python manage.py runserver
 ```
 
+To create the database tables needed for the app, run the migrations:
+```bash
+python manage.py migrate
+```
+
 Open [http://localhost:8000](http://localhost:8000) with your browser to see the result.
 
 ## API Documentation
